@@ -28,7 +28,7 @@ export default function Confirm() {
     //   }
     };
     loadBooking();
-  }, []);
+  }, [booking]);
 
   return (
     <View style={styles.container}>
