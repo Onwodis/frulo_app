@@ -35,7 +35,7 @@ export default function Book() {
       date: date.toDateString(),
       time: date.toLocaleTimeString(),
     };
-    // alert(service)
+
     await AsyncStorage.setItem('booking', JSON.stringify(booking));
     router.push('/confirm');
   };
