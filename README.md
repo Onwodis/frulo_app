@@ -27,3 +27,10 @@ Frulo is a lightweight, elegant mobile and web application that allows users to 
 
 ## 📁 Folder Structure
 
+## technical details 
+
+## used app router methodology with transcript  , synonymous to nextjs app router , 
+## things to be improved on : , alert and call back on service when book or confirm is clicked of course when a step is skipped , general testing too , better ui interface , and more advanced component libraries .    , 
+
+ ## the following were used as default services const services = ['Haircut', 'Makeup', 'Massage'];
+## the above maybe fecthed from an api or custom endpoint or admin/super admin will be harded to create services 
