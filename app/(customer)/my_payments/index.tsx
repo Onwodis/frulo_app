@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Timestamp } from 'firebase/firestore';
-
 import {
   View,
   Text,
@@ -28,11 +26,13 @@ import type { User } from '@/store/roleStore';
 import { useRoleStore } from '@/store/roleStore';
 
 const PAGE_SIZE = 10;
-type Booking = {
+type Payment = {
   id: string; // ← Fix here
   service: string;
   name: string;
   email: string;
+  datepaid: string;
+  timepaid: string;
   uniqueid: string;
   serviceid: string;
   date: Date;
@@ -42,27 +42,24 @@ type Booking = {
   status: 'pending' | 'approved' | 'rejected';
   userid: string;
 };
-const BookingsScreen = () => {
+const PaymentsScreen = () => {
   const navigation = useNavigation();
   const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
   const user: User = useRoleStore((s) => s.user);
-  function convertTimestampToDate(timestamp: Timestamp): Date {
-    return timestamp.toDate();
-  }
 
-  const fetchBookings = async (paginate = false) => {
+  const fetchPayments = async (paginate = false) => {
     try {
       const auth = getAuth();
 
       if (!user) return;
 
-      const bookingsRef = collection(db, 'bookings');
+      const paysRef = collection(db, 'transactions');
       let q = query(
-        bookingsRef,
+        paysRef,
         where('userid', '==', user.userid),
         limit(PAGE_SIZE)
       );
@@ -72,39 +69,33 @@ const BookingsScreen = () => {
       }
 
       const snapshot = await getDocs(q);
-      let newBookings = snapshot.docs.map((doc) => ({
+      const newPayments = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Booking[];
-      newBookings.sort((a, b) => {
-        const dateA =
-          a.date instanceof Timestamp ? a.date.toDate().getTime() : 0;
-        const dateB =
-          b.date instanceof Timestamp ? b.date.toDate().getTime() : 0;
-        return dateA - dateB;
-      });
+      })) as Payment[];
 
       if (paginate) {
-        setBookings((prev) => [...prev, ...newBookings]);
+        setPayments((prev) => [
+          ...prev,
+          ...newPayments.sort(
+            (b,a) => new Date(a.date).getTime() - new Date(b.date).getTime()
+          ),
+        ]);
       } else {
-        setBookings(
-          newBookings.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-          )
-        );
+        setPayments(newPayments);
       }
 
       setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
     } catch (err) {
-      console.error('Error fetching bookings:', err);
+      console.error('Error fetching payments:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchPayments();
   }, []);
   const styles = StyleSheet.create({
     container: {
@@ -178,21 +169,14 @@ const BookingsScreen = () => {
     },
   });
 
-  const renderBooking = ({ item }: { item: Booking }) => (
+  const renderPayment = ({ item }: { item: Payment }) => (
     <View style={styles.row}>
-      <Text style={[styles.cell, { paddingHorizontal: 3 }]}>
-        {item.service}
-      </Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.service}</Text>
 
-      <Text style={[styles.cell, { paddingHorizontal: 3 }]}>{item.made}</Text>
-      <Text style={[styles.cell, { paddingHorizontal: 3 }]}>{item.time}</Text>
-      {/* <Text style={[styles.cell,{paddingHorizontal:3}]}>{'₦' + item.price.toLocaleString()}</Text> */}
-      <Text
-        style={[
-          styles.cell,
-          { paddingHorizontal: 3, color: getStatusColor(item.status) },
-        ]}
-      >
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.datepaid}</Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.timepaid}</Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{'₦' + item.price.toLocaleString()}</Text>
+      <Text style={[styles.cell, {paddingHorizontal:3, color: getStatusColor(item.status) }]}>
         {item.status}
       </Text>
       {/* <Text style={[styles.cell, { color: getStatusColor(item.status) }]}>
@@ -201,7 +185,7 @@ const BookingsScreen = () => {
     </View>
   );
 
-  const getStatusColor = (status: Booking['status']) => {
+  const getStatusColor = (status: Payment['status']) => {
     switch (status) {
       case 'approved':
         return 'green';
@@ -215,20 +199,15 @@ const BookingsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.topBar, { marginBottom: 50 }]}>
-        <Text style={[styles.title]}>My Bookings</Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('./book')}
-        >
-          <Text style={styles.buttonText}>+ New Booking</Text>
-        </TouchableOpacity>
+      <View style={[styles.topBar,{marginBottom:50}]}>
+        <Text style={[styles.title]}>My Payments</Text>
+      
       </View>
 
       {loading ? (
         <ActivityIndicator size="large" color="#007BFF" />
-      ) : bookings.length === 0 ? (
-        <Text style={styles.emptyText}>You do not have any bookings yet.</Text>
+      ) : payments.length === 0 ? (
+        <Text style={styles.emptyText}>You do not have any payments yet.</Text>
       ) : (
         <>
           <View style={styles.tableHeader}>
@@ -236,30 +215,31 @@ const BookingsScreen = () => {
 
             <Text style={[styles.cell, styles.header]}>Date</Text>
             <Text style={[styles.cell, styles.header]}>Time</Text>
-            {/* <Text style={[styles.cell, styles.header]}>Price</Text> */}
+            <Text style={[styles.cell, styles.header]}>Price</Text>
             <Text style={[styles.cell, styles.header]}>Status</Text>
-            {/* <Text style={[styles.cell, styles.header]}>Booking id</Text> */}
+            {/* <Text style={[styles.cell, styles.header]}>Payment id</Text> */}
           </View>
 
           {/* <FlatList
-            data={bookings}
+            data={Payments}
             keyExtractor={(item) => item.id}
-            renderItem={renderBooking}
+            renderItem={renderPayment}
             contentContainerStyle={styles.tableBody}
           /> */}
-
-          <FlatList
-            data={bookings}
-            horizontal={false} // Still vertical
-            keyExtractor={(item) => item.id}
-            renderItem={renderBooking}
-            contentContainerStyle={styles.tableBody}
-          />
+        
+            <FlatList
+              data={payments}
+              horizontal={false} // Still vertical
+              keyExtractor={(item) => item.id}
+              renderItem={renderPayment}
+              contentContainerStyle={styles.tableBody}
+            />
+    
 
           {hasMore && (
             <TouchableOpacity
               style={styles.loadMore}
-              onPress={() => fetchBookings(true)}
+              onPress={() => fetchPayments(true)}
             >
               <Text style={styles.loadMoreText}>Load More</Text>
             </TouchableOpacity>
@@ -270,4 +250,4 @@ const BookingsScreen = () => {
   );
 };
 
-export default BookingsScreen;
+export default PaymentsScreen;

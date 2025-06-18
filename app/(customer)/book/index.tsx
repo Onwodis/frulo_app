@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
@@ -131,12 +132,15 @@ export default function Book() {
       await addDoc(collection(db, 'transactions'), {
         userid,
         bookingid: newBookingRef.id,
+        service: newBooking.service,
         serviceid,
         email,
         name,
         price: newBooking.price || 0,
         date,
-        datepaid:new Date(),
+        uniqueid,
+        datepaid:new Date().toLocaleDateString(),
+        timepaid:new Date().toLocaleTimeString(),
         status: 'initiated',
         createdAt: serverTimestamp(),
       });
@@ -173,7 +177,7 @@ export default function Book() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>💅 Book a Frulo Service </Text>
       <Text style={styles.label}>Select a Service</Text>
       <View style={styles.serviceList}>
@@ -286,7 +290,7 @@ export default function Book() {
           </TouchableOpacity> */}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -295,7 +299,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff6f6',
     padding: 20,
-    justifyContent: 'center',
   },
   small: { fontSize: 10 },
   title: {

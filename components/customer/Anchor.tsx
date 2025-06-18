@@ -25,6 +25,7 @@ const FooterNav = () => {
   const tabs: Tab[] = [
     { label: 'Dashboard', icon: 'home', route: '/db' },
     { label: 'Bookings', icon: 'calendar', route: '/cus_bookings' },
+    { label: 'Payments', icon: 'calendar', route: '/my_payments' },
     { label: 'Support', icon: 'chatbubbles', route: '/cus_support' },
     { label: 'Settings', icon: 'settings', route: '/cus_settings' },
   ];
