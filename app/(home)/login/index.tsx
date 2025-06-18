@@ -101,6 +101,16 @@ export default function Login() {
         name: firestoreUser.name,
         admin: firestoreUser.admin,
       };
+      
+      await updateDoc(userRef, {
+        lastseen: new Date(),
+        // emailVerified: user.emailVerified,
+        logintimes: userData.logintimes + 1
+      }).then(() => {
+        console.log('Firestore user document updated');
+      }).catch((error) => {
+        console.error('Error updating user doc:', error);
+      });
 
       setUser(userData);
       Alert.alert('✅ Success', `Welcome back ${user.email}`);

@@ -24,9 +24,9 @@ export default function Layout() {
       </View>
 
       {/* Scrollable Page Content */}
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View  style={{flex:1}}>
         <Slot />
-      </ScrollView>
+      </View>
       <View style={styles.navbarWrap}>
         <Anchor />
       </View>

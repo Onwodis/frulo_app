@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   Alert,
   Platform,
-  Button,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
@@ -15,30 +14,38 @@ import { useBookingStore } from '@/store/bookingStore';
 import { serviceStore } from '@/store/serviceStore';
 import type { Service } from '@/store/serviceStore';
 // import PaystackWebView from 'react-native-paystack-webview';
-import { addDoc, collection } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  query,
+  where,
+  updateDoc,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useRoleStore } from '@/store/roleStore';
-import Paystack from 'react-native-paystack-webview';
-const PaystackWebView = Paystack as unknown as React.ComponentType<any>;
-
-// Available service list
-const SERVICES = ['Haircut', 'Massage', 'Facial', 'Manicure', 'Beard Trim'];
 
 type Booking = {
   id: string; // ← Fix here
   service: string;
-  cust_id: string;
+  name: string;
+  email: string;
+  uniqueid: string;
+  serviceid: string;
+  made: string;
   date: Date;
   time: string;
+  price: number;
   status: 'pending' | 'approved' | 'rejected';
-  userId: string;
+  userid: string;
 };
 
 export default function Book() {
   const router = useRouter();
   const addBooking = useBookingStore((s) => s.addBooking);
   const services = serviceStore((s) => s.services);
-  const { bookings } = useBookingStore();
   const user = useRoleStore((s) => s.user);
   const [paying, setPaying] = useState(false);
 
@@ -63,68 +70,100 @@ export default function Book() {
     }
   };
 
-  const getStatusStyle = (status: any) => ({
-    color:
-      status === 'approved'
-        ? 'green'
-        : status === 'rejected'
-        ? 'red'
-        : 'orange',
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
-    textAlign: 'center',
-  });
-
   const [selectedService, setSelectedService] = useState<Service>(null);
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setPaying(true);
+    // this bypasses paystack payment and assumes payment has been made
     if (!selectedService) {
       return Alert.alert('Missing Info', 'Please select a service');
     }
 
-    // Check if time is already taken
-    const isConflict = bookings.some(
-      (b) =>
-        b.date.toDateString() === date.toDateString() &&
-        b.time === date.toLocaleTimeString()
-    );
-
-    if (isConflict) {
-      return Alert.alert(
-        'Oops! Time Unavailable',
-        'Sorry, that time has already been booked. Please choose another time.'
-      );
-    }
-
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const hour = date.getHours();
+    const uniqueid = hour + '_' + day + '_' + month + '_' + year;
+    // create a string for day and hr ,this will make bookings day and hour unique
     const newBooking: Booking = {
-      id: Date.now().toString(),
+      id: 'fru-' + Math.ceil((Math.random() + 1) * 10000),
       service: selectedService.name,
       date,
+      made:new Date().toDateString(),
       time: date.toLocaleTimeString(),
+      uniqueid,
+      price: selectedService.price,
       status: 'pending',
-      userId: 'customer1',
-      cust_id: 'customer1',
+      userid: user.userid,
+      name: user.name,
+      email: user.email,
+      serviceid: selectedService.id,
     };
+    try {
+      const { serviceid, name, date, userid, email } = newBooking;
 
-    addBooking(newBooking);
-    router.push('/cus_success');
-  };
-  const handleCancel = (id: string) => {
-    Alert.alert(
-      'Cancel Booking',
-      'Are you sure you want to cancel this booking?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes',
-          onPress: () => {
-            useBookingStore.getState().removeBooking(id);
-          },
-        },
-      ]
-    );
+      // 1. Check for existing booking with same service and timestamp
+      const bookingsRef = collection(db, 'bookings');
+      const q = query(
+        bookingsRef,
+        where('serviceid', '==', serviceid),
+        where('uniquid', '==', uniqueid)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        Alert.alert('Time Unavailable', 'This booking time is already taken.');
+        return;
+      }
+
+      // 2. Store the booking
+      const newBookingRef = await addDoc(bookingsRef, {
+        ...newBooking,
+        createdAt: serverTimestamp(),
+        status: 'pending', // or 'confirmed'
+      });
+
+      // 3. Create payment transaction (optional sample)
+      await addDoc(collection(db, 'transactions'), {
+        userid,
+        bookingid: newBookingRef.id,
+        serviceid,
+        email,
+        name,
+        price: newBooking.price || 0,
+        date,
+        status: 'initiated',
+        createdAt: serverTimestamp(),
+      });
+      const bookingsSnapshot = await getDocs(collection(db, 'bookings'));
+      const bookings = bookingsSnapshot.docs.map((doc) => ({
+        userid: user.userid,
+        ...doc.data(),
+      })) as Booking[];
+
+      const userRef = doc(db, 'users', user.userid);
+
+      await updateDoc(userRef, {
+        bookings: bookings.length,
+      })
+        .then(() => {
+          console.log('Firestore user document updated');
+        })
+        .catch((error) => {
+          console.error('Error updating user doc:', error);
+        });
+      Alert.alert('Success', 'Your payment was successful');
+      router.push("./cus_bookings")
+    } catch (error) {
+      console.error('Booking Error:', error);
+      Alert.alert(
+        'Error',
+        'Something went wrong while processing your booking.'
+      );
+    }
+    setPaying(false);
   };
 
   return (
@@ -143,7 +182,7 @@ export default function Book() {
               <Text
                 style={[styles.serviceText, isSelected && styles.selectedText]}
               >
-                {service.name}{' '}
+                {service.name.toUpperCase()}{' '}
                 <Text
                   style={[
                     styles.small,
@@ -161,7 +200,7 @@ export default function Book() {
           );
         })}
       </View>
-     
+
       {selectedService && (
         <View>
           <Text style={styles.label}>Select Date & Time</Text>
@@ -206,15 +245,22 @@ export default function Book() {
             {date.toLocaleDateString()} at {date.toLocaleTimeString()}
           </Text>
 
-          <Text style={{ fontSize: 18, marginBottom: 10 }}>
+          {/* <Text style={{ fontSize: 18, marginBottom: 10 }}>
             Pay ₦{selectedService.price.toLocaleString()}
-          </Text>
+          </Text> */}
 
-          {!paying && (
-            <Button title="Pay with Paystack" onPress={() => setPaying(true)} />
+          {!paying ? (
+            // <Button title="Pay with Paystack" onPress={() => setPaying(true)} />
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>
+                Pay ₦{selectedService.price.toLocaleString()}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <ActivityIndicator size="small" color="#fff" />
           )}
 
-          {paying && (
+          {/* {paying && (
             <PaystackWebView
               paystackKey="sk_test_a0881b404241ec3896741b139dea79cec53c58d2"
               billingEmail={user.email}
@@ -223,7 +269,7 @@ export default function Book() {
               onCancel={() => alert('Payment cancelled')}
               autoStart={true}
             />
-          )}
+          )} */}
 
           {/* <TouchableOpacity
             style={[styles.submitBtn, { marginTop: 105 }]}
@@ -252,6 +298,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
+  button: {
+    backgroundColor: '#6200ee',
+    padding: 14,
+    borderRadius: 8,
+    width: 150,
+    margin: 'auto',
+    marginBottom: 50,
+  },
+  buttonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
   label: {
     fontSize: 16,
     marginBottom: 8,
@@ -279,7 +334,7 @@ const styles = StyleSheet.create({
     borderColor: '#6200ee',
   },
   serviceText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#444',
     fontWeight: '500',
   },

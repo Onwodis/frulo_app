@@ -25,7 +25,7 @@ export default function CustomerDashboard() {
     { label: 'Total Payment', value: `₦${user.totalpayment || 0}` },
   ];
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.welcome}>👋 Welcome, {user.name}</Text>
 
       <ScrollView contentContainerStyle={styles.container}>
@@ -44,7 +44,7 @@ export default function CustomerDashboard() {
       >
         <Text style={styles.buttonText}>Book a Service</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
