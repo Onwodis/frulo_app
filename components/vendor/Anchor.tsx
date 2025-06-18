@@ -1,18 +1,21 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet,Alert, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Alert, Text } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoleStore } from '../../store/roleStore';
+import { useRoleStore } from '@/store/roleStore';
 
 type Tab = {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap; 
-  route: any;
+  icon: keyof typeof Ionicons.glyphMap;
+  route: string;
 };
-const FooterNav = () => {
-    const setRole = useRoleStore((s) => s.setRole);
-  
+
+const VendorAnchor = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const setRole = useRoleStore((s) => s.setRole);
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
@@ -27,15 +30,13 @@ const FooterNav = () => {
       },
     ]);
   };
-  const router = useRouter();
-  const pathname = usePathname();
 
-  const tabs : Tab[] = [
-    { label: 'Home', icon: 'home', route: '/vendordb' },
-    { label: 'Bookings', icon: 'calendar', route: '/(vendor)/vend_bookings' },
-    { label: 'Clients', icon: 'chatbubbles', route: '/(vendor)/vend_clients' },
-    // { label: 'Settings', icon: 'settings', route: '/(vendor)/vend_settings' },
-  ] 
+  const tabs: Tab[] = [
+    { label: 'Home', icon: 'home-outline', route: './vendordb' },
+    { label: 'Bookings', icon: 'calendar-outline', route: '/(vendor)/allbookings' },
+    { label: 'Clients', icon: 'chatbubbles-outline', route: '/(vendor)/vend_clients' },
+    { label: 'Transactions', icon: 'card-outline', route: '/(vendor)/vend_transactions' }, // ✅ New tab
+  ];
 
   return (
     <View style={styles.container}>
@@ -59,10 +60,11 @@ const FooterNav = () => {
           </TouchableOpacity>
         );
       })}
+
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={24} color="#f44336" />
-              <Text style={[styles.label, { color: '#f44336' }]}>Logout</Text>
-            </TouchableOpacity>
+        <Ionicons name="log-out-outline" size={24} color="#f44336" />
+        <Text style={[styles.label, { color: '#f44336' }]}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -85,4 +87,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FooterNav;
+export default VendorAnchor;

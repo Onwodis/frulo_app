@@ -12,10 +12,11 @@ import { useBookingStore } from '../../../store/bookingStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoleStore } from '../../../store/roleStore';
 
+
 export default function VendorDashboard() {
   const router = useRouter();
   const bookings = useBookingStore((state) => state.bookings);
-  const users = useRoleStore((s) => s.getUsers());
+  // const users = useRoleStore((s) => s.getUsers());
   const user = useRoleStore((state) => state.user);
 
   const [showPending, setShowPending] = useState(true);
@@ -23,7 +24,16 @@ export default function VendorDashboard() {
   const filteredBookings = showPending
     ? bookings.filter((b) => b.status === 'pending')
     : bookings.filter((b) => b.status !== 'pending');
-
+  const getStatusStyle = (status: 'pending' | 'approved' | 'rejected') => ({
+  color:
+    status === 'approved'
+      ? '#4caf50'
+      : status === 'rejected'
+      ? '#f44336'
+      : '#ff9800',
+  fontWeight: '600',
+  fontSize: 13,
+});
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -85,16 +95,7 @@ export default function VendorDashboard() {
   );
 }
 
-const getStatusStyle = (status: 'pending' | 'approved' | 'rejected') => ({
-  color:
-    status === 'approved'
-      ? '#4caf50'
-      : status === 'rejected'
-      ? '#f44336'
-      : '#ff9800',
-  fontWeight: '600',
-  fontSize: 13,
-});
+
 
 const styles = StyleSheet.create({
   container: {

@@ -51,7 +51,7 @@ export default function CustomerDashboard() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingBottom: 40,
+    marginBottom: 40,
     backgroundColor: '#fff9f0',
   },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6200ee',
     padding: 14,
     borderRadius: 8,
+    marginBottom:40
   },
   buttonText: { color: '#fff', fontSize: 16 ,textAlign:"center"},
   welcome: {

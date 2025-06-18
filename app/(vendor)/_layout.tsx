@@ -18,9 +18,9 @@ export default function Layout() {
         <Navbar />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={{flex:1}}>
         <Slot />
-      </ScrollView>
+      </View>
       <View style={styles.navbarWrap}>
         <Anchor />
       </View>

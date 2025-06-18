@@ -8,7 +8,7 @@ export type User = {
   name: string; 
   password: any;
   emailVerified:boolean;
-  admin:boolean;
+  admin?:boolean;
   verified:boolean;
   lastseen:  Timestamp ;
   lastbookingid:string;

@@ -24,7 +24,7 @@ export default function Layout() {
       </View>
 
       {/* Scrollable Page Content */}
-      <View  style={{flex:1}}>
+      <View  style={{flex:1 }}>
         <Slot />
       </View>
       <View style={styles.navbarWrap}>
@@ -39,14 +39,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navbarWrap: {
-    position: 'sticky', // works on web
-    top: 0,
+    
     zIndex: 100,
-    backgroundColor: '#ff758c', // or darken based on theme
+    backgroundColor: '#ff758c', 
+    padding:0
   },
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
 });

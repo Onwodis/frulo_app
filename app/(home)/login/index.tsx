@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getAuth, signInWithEmailAndPassword, deleteUser } from 'firebase/auth';
+import {signInWithEmailAndPassword, deleteUser } from 'firebase/auth';
 import {
   doc,
   updateDoc,
@@ -27,7 +27,7 @@ import type { Service } from '../../../store/serviceStore';
 export default function Login() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('samuelonwodi@yahoo.com');
+  const [email, setEmail] = useState('samuelonwodi@gmail.com');
   const [password, setPassword] = useState('123456');
   const [loading, setLoading] = useState(false);
   const setUser = useRoleStore((s) => s.setUser);
@@ -114,7 +114,7 @@ export default function Login() {
 
       setUser(userData);
       Alert.alert('✅ Success', `Welcome back ${user.email}`);
-      router.replace('/(customer)/db');
+      return !userData.admin ? router.replace('/(customer)/db'):router.replace('/vendordb');
     } catch (error: any) {
       Alert.alert('❌ Login Failed', error.message);
     } finally {

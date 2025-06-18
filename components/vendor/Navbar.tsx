@@ -44,7 +44,7 @@ export default function FruloNavbar() {
 
   return (
     <View style={[styles.navbar, { backgroundColor: isDark ? '#1f1f1f' : '#ff758c' }]}>
-      <TouchableOpacity onPress={() => router.push('/')}>
+      <TouchableOpacity onPress={() => router.push('./vendordb')}>
         <Text style={styles.brand}>✂️ Frulo</Text>
       </TouchableOpacity>
 
