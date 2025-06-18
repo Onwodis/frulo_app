@@ -47,6 +47,7 @@ export default function Book() {
   const addBooking = useBookingStore((s) => s.addBooking);
   const services = serviceStore((s) => s.services);
   const user = useRoleStore((s) => s.user);
+  const setUser = useRoleStore((s) => s.setUser);
   const [paying, setPaying] = useState(false);
 
   const amount = 5000; // in naira
@@ -86,12 +87,13 @@ export default function Book() {
     const day = date.getDate();
     const hour = date.getHours();
     const uniqueid = hour + '_' + day + '_' + month + '_' + year;
+    console.log(date.toDateString())
     // create a string for day and hr ,this will make bookings day and hour unique
     const newBooking: Booking = {
       id: 'fru-' + Math.ceil((Math.random() + 1) * 10000),
       service: selectedService.name,
       date,
-      made:new Date().toDateString(),
+      made:date.toDateString(),
       time: date.toLocaleTimeString(),
       uniqueid,
       price: selectedService.price,
@@ -134,6 +136,7 @@ export default function Book() {
         name,
         price: newBooking.price || 0,
         date,
+        datepaid:new Date(),
         status: 'initiated',
         createdAt: serverTimestamp(),
       });
@@ -147,6 +150,7 @@ export default function Book() {
 
       await updateDoc(userRef, {
         bookings: bookings.length,
+        lastbookingid:newBooking.id
       })
         .then(() => {
           console.log('Firestore user document updated');
@@ -154,6 +158,8 @@ export default function Book() {
         .catch((error) => {
           console.error('Error updating user doc:', error);
         });
+        setUser({...user,bookings: bookings.length,
+        lastbookingid:newBooking.id})
       Alert.alert('Success', 'Your payment was successful');
       router.push("./cus_bookings")
     } catch (error) {
@@ -232,7 +238,8 @@ export default function Book() {
                 value={date}
                 mode="datetime"
                 minimumDate={new Date()}
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                // display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                display={'inline'}
                 onChange={(e, selected) => {
                   if (selected) setDate(selected);
                 }}
@@ -257,7 +264,7 @@ export default function Book() {
               </Text>
             </TouchableOpacity>
           ) : (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="large" color="black" />
           )}
 
           {/* {paying && (

@@ -76,7 +76,7 @@ const BookingsScreen = () => {
         setBookings((prev) => [
           ...prev,
           ...newBookings.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+            (b,a) => new Date(a.date).getTime() - new Date(b.date).getTime()
           ),
         ]);
       } else {
@@ -170,14 +170,15 @@ const BookingsScreen = () => {
   const renderBooking = ({ item }: { item: Booking }) => (
     <View style={styles.row}>
       <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.made}</Text>
-      <Text style={styles.cell}>{item.service}</Text>
-      <Text style={styles.cell}>{'₦' + item.price.toLocaleString()}</Text>
-      <Text style={[styles.cell, { color: getStatusColor(item.status) }]}>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.time}</Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.service}</Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{'₦' + item.price.toLocaleString()}</Text>
+      <Text style={[styles.cell, {paddingHorizontal:3, color: getStatusColor(item.status) }]}>
         {item.status}
       </Text>
-      <Text style={[styles.cell, { color: getStatusColor(item.status) }]}>
+      {/* <Text style={[styles.cell, { color: getStatusColor(item.status) }]}>
         {item.id}
-      </Text>
+      </Text> */}
     </View>
   );
 
@@ -212,11 +213,12 @@ const BookingsScreen = () => {
       ) : (
         <>
           <View style={styles.tableHeader}>
-            <Text style={[styles.cell, styles.header]}>Date & Time</Text>
+            <Text style={[styles.cell, styles.header]}>Date</Text>
+            <Text style={[styles.cell, styles.header]}>Time</Text>
             <Text style={[styles.cell, styles.header]}>Service</Text>
             <Text style={[styles.cell, styles.header]}>Price</Text>
             <Text style={[styles.cell, styles.header]}>Status</Text>
-            <Text style={[styles.cell, styles.header]}>Booking id</Text>
+            {/* <Text style={[styles.cell, styles.header]}>Booking id</Text> */}
           </View>
 
           {/* <FlatList
