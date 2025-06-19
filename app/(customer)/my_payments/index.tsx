@@ -171,7 +171,7 @@ const PaymentsScreen = () => {
 
   const renderPayment = ({ item }: { item: Payment }) => (
     <View style={styles.row}>
-      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.service}</Text>
+      <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.service.toUpperCase()}</Text>
 
       <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.datepaid}</Text>
       <Text style={[styles.cell,{paddingHorizontal:3}]}>{item.timepaid}</Text>
