@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useRoleStore } from '@/store/roleStore';
 
@@ -17,17 +24,19 @@ export default function VendorDashboard() {
     totalInitiatedAmount: 0,
   });
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
   const fetchStats = async () => {
     try {
       setLoading(true);
 
-      const bookingsRef = collection(db, 'bookings');
-      const transactionsRef = collection(db, 'transactions');
-      const servicesRef = collection(db, 'services');
+      const bookingsSnapshot = await getDocs(query(collection(db, 'bookings')));
+      const transactionsSnapshot = await getDocs(query(collection(db, 'transactions')));
+      const servicesSnapshot = await getDocs(query(collection(db, 'services')));
 
-      // Fetch bookings
-      const bookingsSnapshot = await getDocs(query(bookingsRef));
       const bookings = bookingsSnapshot.docs.map(doc => doc.data());
+      const transactions = transactionsSnapshot.docs.map(doc => doc.data());
+      const services = servicesSnapshot.docs.map(doc => doc.data());
 
       const pending = bookings.filter(b => b.status === 'pending').length;
       const approved = bookings.filter(b => b.status === 'approved').length;
@@ -35,18 +44,10 @@ export default function VendorDashboard() {
         .filter(b => b.status === 'approved')
         .reduce((sum, b) => sum + (b.price || 0), 0);
 
-      // Fetch transactions
-      const txSnapshot = await getDocs(query(transactionsRef));
-      const transactions = txSnapshot.docs.map(doc => doc.data());
-
       const initiated = transactions.filter(t => t.status === 'initiated').length;
       const totalInitiatedAmount = transactions
         .filter(t => t.status === 'initiated')
         .reduce((sum, t) => sum + (t.price || 0), 0);
-
-      // Fetch services
-      const servicesSnapshot = await getDocs(query(servicesRef));
-      const services = servicesSnapshot.docs.map(doc => doc.data());
 
       setStats({
         pending,
@@ -56,11 +57,15 @@ export default function VendorDashboard() {
         totalApprovedAmount,
         totalInitiatedAmount,
       });
-
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
     } finally {
       setLoading(false);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
     }
   };
 
@@ -68,12 +73,16 @@ export default function VendorDashboard() {
     fetchStats();
   }, []);
 
-  if (loading) return <ActivityIndicator size="large" color="purple" style={{ marginTop: 50 }} />;
+  if (loading)
+    return <ActivityIndicator size="large" color="#6200ee" style={{ marginTop: 50 }} />;
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>📊 Vendor Dashboard</Text>
-      <View style={styles.statsContainer}>
+      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
+        📊 Vendor Dashboard
+      </Animated.Text>
+
+      <Animated.View style={[styles.statsContainer, { opacity: fadeAnim }]}>
         <StatBox label="Pending Bookings" value={stats.pending} color="#ff9800" />
         <StatBox label="Approved Bookings" value={stats.approved} color="#4caf50" />
         <StatBox label="Services Offered" value={stats.services} color="#3f51b5" />
@@ -88,12 +97,20 @@ export default function VendorDashboard() {
           value={`₦${stats.totalInitiatedAmount.toLocaleString()}`}
           color="#9c27b0"
         />
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }
 
-const StatBox = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
+const StatBox = ({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number | string;
+  color: string;
+}) => (
   <View style={[styles.card, { backgroundColor: color }]}>
     <Text style={styles.cardLabel}>{label}</Text>
     <Text style={styles.cardValue}>{value}</Text>
@@ -102,39 +119,44 @@ const StatBox = ({ label, value, color }: { label: string; value: number | strin
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fffdf8',
     flex: 1,
-    padding: 10,
+    padding: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginVertical: 10,
+    marginVertical: 16,
     textAlign: 'center',
-    color: '#333',
+    color: '#6200ee',
   },
   statsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 5,
+    gap: 10,
   },
   card: {
-    width: '75%',
+    width: '85%',
     margin: 8,
-    padding: 26,
-    borderRadius: 12,
-    elevation: 3,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
   },
   cardLabel: {
     color: '#fff',
-    fontSize: 14,
-    marginBottom: 6,
+    fontSize: 16,
     fontWeight: '600',
+    marginBottom: 6,
   },
   cardValue: {
     color: '#fff',
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
   },
 });

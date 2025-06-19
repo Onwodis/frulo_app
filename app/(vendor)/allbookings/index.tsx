@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  Animated,
 } from 'react-native';
 import {
   collection,
@@ -51,6 +52,7 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const user: User = useRoleStore((s) => s.user);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     fetchBookings();
@@ -68,11 +70,16 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
       return {
         ...data,
         id: doc.id,
-        date: data.date?.toDate?.() || new Date(), // safely convert Firestore Timestamp
+        date: data.date?.toDate?.() || new Date(),
       } as Booking;
     });
     setBookings(vendorBookings);
     setLoading(false);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
   };
 
   const paginate = (page: number) => {
@@ -88,15 +95,10 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
     setLoading(true);
 
     try {
-      // ✅ 1. Update booking status
-
       const bookingRef = doc(db, 'bookings', booking.id);
       await updateDoc(bookingRef, { status: action });
 
-      // await updateDoc(bookingRef, { status: action });
-
       if (action === 'approved') {
-        // ✅ 2. Update transaction if exists
         if (booking.transid) {
           const q = query(
             collection(db, 'transactions'),
@@ -105,20 +107,12 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
           );
 
           const snapshot = await getDocs(q);
-
-          if (snapshot.empty) {
-            console.log('❌ No transaction found');
-            return null;
+          if (!snapshot.empty) {
+            const docRef = snapshot.docs[0].ref;
+            await updateDoc(docRef, { status: 'approved' });
           }
-
-          const docRef = snapshot.docs[0].ref;
-
-          // const transactionRef = doc(db, 'transactions', booking.transid);
-          await updateDoc(docRef, { status: 'approved' });
-          // Alert.alert('Success', `transRef is  ${docRef.id}`);
         }
 
-        // ✅ 3. Update user totalpayment
         const userRef = doc(db, 'users', booking.userid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -127,12 +121,9 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
           await updateDoc(userRef, {
             totalpayment: prevUserTotal + booking.price,
           });
-        } else {
-          console.warn(`User not found: ${booking.userid}`);
         }
 
-        // ✅ 4. Update vendor totalpayment
-        const vendorRef = doc(db, 'users', user.userid); // `user` from useRoleStore
+        const vendorRef = doc(db, 'users', user.userid);
         const vendorSnap = await getDoc(vendorRef);
         if (vendorSnap.exists()) {
           const vendorData = vendorSnap.data();
@@ -140,8 +131,6 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
           await updateDoc(vendorRef, {
             totalpayment: prevVendorTotal + booking.price,
           });
-        } else {
-          console.warn(`Vendor not found: ${user.userid}`);
         }
       }
 
@@ -149,61 +138,44 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
       await fetchBookings();
     } catch (error) {
       console.error('❌ handleAction error:', error);
-      Alert.alert(
-        'Error',
-        'Something went wrong while processing this booking.'
-      );
+      Alert.alert('Error', 'Something went wrong while processing this booking.');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderItem = ({ item }: { item: Booking }) => (
-    <View style={styles.card}>
-      <Text style={styles.title}>🛠 {item.service.toUpperCase()} </Text>
-      <Text>
-        {item.made} {item.time}
-      </Text>
-      <Text>👤 {item.name}</Text>
-      <Text>💵 ₦{item.price.toLocaleString()}</Text>
-      {item.status === 'approved' ? (
-        <View>
-          <TouchableOpacity>
-            <Text style={[{ textAlign: 'center', color: 'green' }]}>
-              Approved
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : item.status === 'rejected' ? 
-      (
-        <View >
-          
+  const renderItem = ({ item }: { item: Booking }) => {
+    const scale = new Animated.Value(1);
+    return (
+      <Animated.View style={[styles.card, { transform: [{ scale }], opacity: fadeAnim }]}>
+        <Text style={styles.title}>🛠 {item.service.toUpperCase()}</Text>
+        <Text>{item.made} {item.time}</Text>
+        <Text>👤 {item.name.toUpperCase()}</Text>
+        <Text>💵 ₦{item.price.toLocaleString()}</Text>
 
-          <TouchableOpacity 
-          >
-            <Text style={[{ textAlign: 'center', color: 'red' }]}>Rejected</Text>
-          </TouchableOpacity>
-        </View>
-      )
-       : (
-        <View style={styles.buttons}>
-          <TouchableOpacity
-            style={styles.approve}
-            onPress={() => handleAction(item, 'approved')}
-          >
-            <Text style={styles.buttonText}>Approve</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.reject}
-            onPress={() => handleAction(item, 'rejected')}
-          >
-            <Text style={styles.buttonText}>Reject</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
+        {item.status === 'approved' ? (
+          <Text style={{ textAlign: 'center', color: 'green', marginTop: 10 }}>Approved</Text>
+        ) : item.status === 'rejected' ? (
+          <Text style={{ textAlign: 'center', color: 'red', marginTop: 10 }}>Rejected</Text>
+        ) : (
+          <View style={styles.buttons}>
+            <TouchableOpacity
+              style={styles.approve}
+              onPress={() => handleAction(item, 'approved')}
+            >
+              <Text style={styles.buttonText}>Approve</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.reject}
+              onPress={() => handleAction(item, 'rejected')}
+            >
+              <Text style={styles.buttonText}>Reject</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
 
   const nextPage = () => {
     if (currentPage * pageSize < bookings.length) {
@@ -218,13 +190,7 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
   };
 
   if (loading) {
-    return (
-      <ActivityIndicator
-        style={{ marginTop: 50 }}
-        size="large"
-        color="#6200EE"
-      />
-    );
+    return <ActivityIndicator style={{ marginTop: 50 }} size="large" color="#6200EE" />;
   }
 
   return (
@@ -237,19 +203,13 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 10 }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No pending bookings</Text>
-        }
+        ListEmptyComponent={<Text style={styles.emptyText}>No pending bookings</Text>}
       />
 
       {bookings.length > pageSize && (
         <View style={styles.pagination}>
           <TouchableOpacity onPress={prevPage} disabled={currentPage === 1}>
-            <Text
-              style={[styles.pageBtn, currentPage === 1 && { color: '#aaa' }]}
-            >
-              Prev
-            </Text>
+            <Text style={[styles.pageBtn, currentPage === 1 && { color: '#aaa' }]}>Prev</Text>
           </TouchableOpacity>
           <Text style={styles.pageText}>Page {currentPage}</Text>
           <TouchableOpacity
@@ -273,7 +233,7 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: width * 0.85,
+    width: width * 0.88,
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
@@ -282,13 +242,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 4,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#333',
+    color: '#3f51b5',
   },
   buttons: {
     flexDirection: 'row',
