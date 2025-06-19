@@ -27,8 +27,8 @@ import type { Service } from '../../../store/serviceStore';
 export default function Login() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('samuelonwodi@gmail.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const setUser = useRoleStore((s) => s.setUser);
   const setServices = serviceStore((s) => s.setServices);
