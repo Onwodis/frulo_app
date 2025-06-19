@@ -1,6 +1,6 @@
 {
-  "name": "booking_app",
-  "slug": "booking_app",
+  "name": "frulo_app",
+  "slug": "frulo_app",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -56,5 +56,5 @@
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
-  "private": true
+  "private": false
 }
