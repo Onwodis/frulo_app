@@ -41,7 +41,7 @@ export default function Support() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[
         styles.container,
-        { backgroundColor: !isDark ? '#1a1a1a' : '#f9f9f9' },
+        { backgroundColor: '#f9f9f9' },
       ]}
     >
       <Text style={[styles.title, { color:  '#fffh'  }]}>
