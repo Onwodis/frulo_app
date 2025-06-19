@@ -8,7 +8,7 @@ import { useRoleStore } from '@/store/roleStore';
 type Tab = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-  route: string;
+  route: any;
 };
 
 const VendorAnchor = () => {
@@ -35,7 +35,7 @@ const VendorAnchor = () => {
     { label: 'Home', icon: 'home-outline', route: '/vendordb' },
     { label: 'Bookings', icon: 'calendar-outline', route: '/allbookings' },
     { label: 'Clients', icon: 'chatbubbles-outline', route: '/vend_clients' },
-    { label: 'Transactions', icon: 'card-outline', route: '/vend_transactions' }, // ✅ New tab
+    { label: 'Transactions', icon: 'card-outline', route: '/vend_transactions' }
   ];
 
   return (

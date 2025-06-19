@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "frulo_app",
-    "slug": "frulo_app",
+    "name": "booking_app",
+    "slug": "booking_app",
     "privacy": "public",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.frulo.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

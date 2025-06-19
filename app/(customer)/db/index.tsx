@@ -22,7 +22,7 @@ export default function CustomerDashboard() {
     { label: 'Bookings', value: user.bookings || 'N/A' },
     { label: 'Last seen', value: user.lastseen?.toDate().toDateString() +" "+user.lastseen?.toDate().toTimeString().split("+")[0]},
     { label: 'Last Booking ID', value: user.lastbookingid || 'N/A' },
-    { label: 'Total Payment', value: `₦${user.totalpayment || 0}` },
+    { label: 'Total Payment', value: `₦${user.totalpayment.toLocaleString() || 0}` },
   ];
   return (
     <ScrollView style={styles.container}>
