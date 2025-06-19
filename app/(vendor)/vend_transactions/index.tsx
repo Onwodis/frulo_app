@@ -87,7 +87,7 @@ const TransactionList = () => {
   }
 
   return (
-    <View style={{ padding: 16 }}>
+    <View style={{ padding: 16 ,flex:1}}>
       <Text style={styles.title}>💳 Transactions</Text>
 
       <ScrollView horizontal>
