@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "booking_app",
-    "slug": "booking_app",
+    "name": "frulo_app",
+    "slug": "frulo_app",
+    "privacy": "public",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

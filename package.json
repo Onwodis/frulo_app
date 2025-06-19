@@ -1,8 +1,12 @@
 {
   "name": "frulo_app",
-  "slug": "frulo_app",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "expo": {
+    "name": "frulo_app",
+    "slug": "frulo_app",
+    "privacy": "public"
+  },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -56,5 +60,5 @@
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
-  "private": false
+  "private": true
 }
