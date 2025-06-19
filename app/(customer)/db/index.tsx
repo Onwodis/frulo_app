@@ -26,7 +26,7 @@ export default function CustomerDashboard() {
   ];
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.welcome}>👋 Welcome, {user.name}</Text>
+      <Text style={styles.welcome}>👋 Hi <Text style={{color:"green"}}>{user.name.toUpperCase()}</Text></Text>
 
       <ScrollView contentContainerStyle={styles.container}>
         {fields.map((field, index) => (

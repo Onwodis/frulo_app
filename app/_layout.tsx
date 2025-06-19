@@ -10,7 +10,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar barStyle={!isDark ? 'light-content' : 'dark-content'} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <Slot />
       </SafeAreaView>
     </SafeAreaProvider>

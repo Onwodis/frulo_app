@@ -32,10 +32,10 @@ const VendorAnchor = () => {
   };
 
   const tabs: Tab[] = [
-    { label: 'Home', icon: 'home-outline', route: './vendordb' },
-    { label: 'Bookings', icon: 'calendar-outline', route: '/(vendor)/allbookings' },
-    { label: 'Clients', icon: 'chatbubbles-outline', route: '/(vendor)/vend_clients' },
-    { label: 'Transactions', icon: 'card-outline', route: '/(vendor)/vend_transactions' }, // ✅ New tab
+    { label: 'Home', icon: 'home-outline', route: '/vendordb' },
+    { label: 'Bookings', icon: 'calendar-outline', route: '/allbookings' },
+    { label: 'Clients', icon: 'chatbubbles-outline', route: '/vend_clients' },
+    { label: 'Transactions', icon: 'card-outline', route: '/vend_transactions' }, // ✅ New tab
   ];
 
   return (

@@ -16,9 +16,7 @@ export default function Layout() {
   return (
     // <SafeAreaView style={[styles.safeArea, { backgroundColor: !isDark ? '#121212' : '#fff' }]}>
     <View style={[styles.safeArea, { backgroundColor: '#fff' }]}>
-      {/* <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} /> */}
-
-      {/* Top Sticky Navbar */}
+     
       <View style={styles.navbarWrap}>
         <Navbar />
       </View>
