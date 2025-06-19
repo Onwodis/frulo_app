@@ -13,6 +13,9 @@ import {
   collection,
   getDocs,
   getDoc,
+  query,
+  where,
+  limit,
   doc,
   updateDoc,
 } from 'firebase/firestore';
@@ -21,6 +24,7 @@ import { useRoleStore } from '@/store/roleStore';
 import type { User } from '@/store/roleStore';
 
 type Booking = {
+  idd: string;
   id: string;
   service: string;
   name: string;
@@ -35,7 +39,7 @@ type Booking = {
   userid: string;
   vendorId: string;
   transid: string;
-  bookingid: string;
+  bookid: string;
 };
 
 const { width } = Dimensions.get('window');
@@ -59,12 +63,14 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
   const fetchBookings = async () => {
     setLoading(true);
     const querySnapshot = await getDocs(collection(db, 'bookings'));
-    const vendorBookings = querySnapshot.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() } as Booking))
-      .filter(
-        (booking) =>
-          booking.vendorId === vendorId && booking.status === 'pending'
-      );
+    const vendorBookings = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id,
+        date: data.date?.toDate?.() || new Date(), // safely convert Firestore Timestamp
+      } as Booking;
+    });
     setBookings(vendorBookings);
     setLoading(false);
   };
@@ -83,14 +89,33 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
 
     try {
       // ✅ 1. Update booking status
-      const bookingRef = doc(db, 'bookings', booking.bookingid);
+
+      const bookingRef = doc(db, 'bookings', booking.id);
       await updateDoc(bookingRef, { status: action });
+
+      // await updateDoc(bookingRef, { status: action });
 
       if (action === 'approved') {
         // ✅ 2. Update transaction if exists
         if (booking.transid) {
-          const transactionRef = doc(db, 'transactions', booking.transid);
-          await updateDoc(transactionRef, { status: 'approved' });
+          const q = query(
+            collection(db, 'transactions'),
+            where('transid', '==', booking.transid),
+            limit(1)
+          );
+
+          const snapshot = await getDocs(q);
+
+          if (snapshot.empty) {
+            console.log('❌ No transaction found');
+            return null;
+          }
+
+          const docRef = snapshot.docs[0].ref;
+
+          // const transactionRef = doc(db, 'transactions', booking.transid);
+          await updateDoc(docRef, { status: 'approved' });
+          // Alert.alert('Success', `transRef is  ${docRef.id}`);
         }
 
         // ✅ 3. Update user totalpayment
@@ -135,28 +160,48 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
 
   const renderItem = ({ item }: { item: Booking }) => (
     <View style={styles.card}>
-      <Text style={styles.title}>🛠 {item.service}</Text>
+      <Text style={styles.title}>🛠 {item.service.toUpperCase()} </Text>
+      <Text>
+        {item.made} {item.time}
+      </Text>
       <Text>👤 {item.name}</Text>
       <Text>💵 ₦{item.price.toLocaleString()}</Text>
-      <View style={styles.buttons}>
-        {item.status ==="approved"?<TouchableOpacity
-          style={styles.approve}
-        >
-          <Text style={styles.buttonText}>Approved</Text>
-        </TouchableOpacity>:
-        <TouchableOpacity
-          style={styles.approve}
-          onPress={() => handleAction(item, 'approved')}
-        >
-          <Text style={styles.buttonText}>Approve</Text>
-        </TouchableOpacity>}
-        <TouchableOpacity
-          style={styles.reject}
-          onPress={() => handleAction(item, 'rejected')}
-        >
-          <Text style={styles.buttonText}>Reject</Text>
-        </TouchableOpacity>
-      </View>
+      {item.status === 'approved' ? (
+        <View>
+          <TouchableOpacity>
+            <Text style={[{ textAlign: 'center', color: 'green' }]}>
+              Approved
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : item.status === 'rejected' ? 
+      (
+        <View >
+          
+
+          <TouchableOpacity 
+          >
+            <Text style={[{ textAlign: 'center', color: 'red' }]}>Rejected</Text>
+          </TouchableOpacity>
+        </View>
+      )
+       : (
+        <View style={styles.buttons}>
+          <TouchableOpacity
+            style={styles.approve}
+            onPress={() => handleAction(item, 'approved')}
+          >
+            <Text style={styles.buttonText}>Approve</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.reject}
+            onPress={() => handleAction(item, 'rejected')}
+          >
+            <Text style={styles.buttonText}>Reject</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -183,10 +228,12 @@ const VendorBookings = ({ vendorId }: { vendorId: string }) => {
   }
 
   return (
-    <View style={{ flex: 1, paddingVertical: 10 }}>
+    <View style={{ flex: 1, paddingVertical: 30 }}>
+      <Text style={styles.title}>📊 All Bookings</Text>
+
       <FlatList
         data={visibleBookings}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.idd}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 10 }}

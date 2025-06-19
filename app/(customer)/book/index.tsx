@@ -47,7 +47,6 @@ export default function Book() {
     const uniqueid = `${hour}_${day}_${month}_${year}`;
     const transid = 'trn-' + Math.ceil((Math.random() + 1) * 100000)
     const newBooking = {
-      id: 'fru-' + Math.ceil((Math.random() + 1) * 10000),
       idd: 'fru-' + Math.ceil((Math.random() + 1) * 10000),
       service: selectedService.name,
       date,
@@ -100,13 +99,13 @@ export default function Book() {
 
       await updateDoc(doc(db, 'users', user.userid), {
         bookings: total,
-        lastbookingid: newBooking.id,
+        lastbookingid: newBooking.idd,
       });
 
       setUser({
         ...user,
         bookings: total,
-        lastbookingid: newBooking.id,
+        lastbookingid: newBooking.idd,
       });
 
       Alert.alert('Success', 'Booking confirmed!');
@@ -157,7 +156,7 @@ export default function Book() {
             mode="datetime"
             date={date}
             minimumDate={new Date()}
-            display='calendar'
+            display={Platform.OS?'inline':'calendar'}
             onConfirm={handleDateConfirm}
             onCancel={() => setShowPicker(false)}
           />
