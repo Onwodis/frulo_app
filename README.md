@@ -59,8 +59,7 @@ Use the above credentials to simulate a vendor login.
 
 ## ⚠️ Known Limitations
 
-- **📅 Android Calendar Glitch**: The `DateTimePicker` may behave inconsistently on Android. This is device-dependent and will be addressed before production.
-- **💳 Paystack Integration**: Payment functionality was omitted due to API key access issues. However, the app is modularly prepared for future integration.
+- **💳 Paystack Integration**: Payment functionality was omitted due to API key access issues which slowed the development down. However, the app is modularly prepared for future integration.
 
 ---
 
