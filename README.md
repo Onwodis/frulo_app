@@ -1,72 +1,85 @@
-# 📱 Frulo Booking App (Test Build)
+# 📱 Frulo Booking App (Technical Challenge)
 
-Frulo is a **mobile service booking application** built using **React Native** and **Firebase**. This application was developed as part of a **technical challenge** for a **Senior Developer role** by [Samuel Onwodi](https://github.com/Onwodis). It showcases practical skills in mobile app development, firebase user authentication, real-time Firestore interaction, and structured UI design.
+**Frulo** is a mobile service booking application built with **React Native**, **Firebase**, and **Expo**. This project was developed by [Samuel Onwodi](https://github.com/Onwodis) as part of a **technical challenge** for a **Senior Software Engineer** role.
 
-> 🚀 **Live Preview (Expo Go)**: [@samon/booking](https://expo.dev/@samon/booking_app)
-
----
-
-## ✨ Features
-
-- 🔐 **Customer Registration & Authentication**
-- 👥 **Role-based Login** (Admin/Vendor & Customer)
-- 📆 **Service Booking with Time Slot Management**
-- ⚠️ **Conflict Detection**: Customers are notified if they attempt to book a service already scheduled in the same hour
-- 🗓️ **Date & Time Picker** (Android note below)
-- 💬 **Booking Status Updates**: Pending, Approved, Rejected
-- 📦 **Firestore-based Data Management**
-- 🛠️ **Zustand for State Management**
-- 📂 **Modular & Clean Code Structure**
+🔗 **Live Preview on Expo Go**: [@samon/booking_app](https://expo.dev/@samon/booking_app)
 
 ---
 
-## 📌 Admin Test Credentials
+## ✅ Features
 
-Email: samuelonwodi@gmail.com
-Password: 123456
-
-
-> Use the above credentials to log in as the admin (vendor) and approve or reject incoming booking requests.
-
----
-
-## ⚙️ Tech Stack
-
-| Tech           | Purpose                                    |
-|----------------|--------------------------------------------|
-| **React Native**   | Cross-platform mobile development          |
-| **Expo**           | Simplified development & testing workflow |
-| **Firebase Auth**  | Secure user authentication                |
-| **Firestore DB**   | Cloud NoSQL database for bookings, users  |
-| **Zustand**        | Global state management                   |
-| **TypeScript**     | Safer code with static typing             |
+- 🔐 **Secure Registration & Login** with Firebase Authentication
+- ✉️ **Email Verification** on Signup
+- 📆 **Slot-Based Booking**: Customers can book services by date and time
+- ⚠️ **Smart Conflict Detection**: Warns if a booking already exists for the same hour
+- 🧑‍🔧 **Vendor Dashboard**: View, approve, or reject booking requests
+- 🧾 **Transaction & Client Records** in Firestore
+- 🔁 **Zustand for State Management**
+- 🌗 **Cross-Platform Support** (iOS & Android with Expo Go)
 
 ---
 
-## 🔄 Booking Flow
+## 🧪 Admin Credentials (Test)
 
-### ✅ Customer
-1. Register with a valid email and password
-2. Select a service, choose a time & date
-3. Submit booking request
-4. Get notified if the slot is unavailable
+| Role   | Email                        | Password |
+|--------|------------------------------|----------|
+| Admin  | `samuelonwodi@gmail.com`     | `123456` |
 
-### 🔧 Admin (Vendor)
-1. Login via test credentials
-2. View all pending bookings
-3. Approve or reject requests
+Use the above credentials to simulate a vendor login.
 
 ---
 
-## ⚠️ Known Issues
+## 🧠 Architecture Overview
 
-- **📅 Android DateTimePicker**: Calendar view may not render as expected on some Android devices. A fallback mode is advised in future iterations.
-- **💳 Paystack Integration Skipped**: Payment gateway logic was not implemented to focus on core app flow for the test. Payment intent stubs are in place.
+| Layer         | Technology         | Purpose                                      |
+|---------------|--------------------|----------------------------------------------|
+| UI/UX         | React Native       | Cross-platform app interface                 |
+| State Store   | Zustand            | Lightweight and reactive state management    |
+| Backend Auth  | Firebase Auth      | Email/password login with verification       |
+| Database      | Firestore (NoSQL)  | Real-time booking & user records             |
+| App Delivery  | Expo Go            | Rapid mobile testing and deployment          |
 
 ---
 
-## 📲 How to Run
+## 📖 Booking Flow
 
-1. Install **Expo Go** on your mobile device (Android or iOS)
-2. Scan this QR code from the [project page](https://expo.dev/@samon/booking)  
-   OR open it manually in the Expo Go app:
+### 👤 Customer
+1. Registers with email and password
+2. Verifies account via email
+3. Books a service
+4. Gets alert if the time slot is already taken
+
+### 🧑‍🔧 Vendor
+1. Logs in with test admin credentials
+2. Views incoming booking requests
+3. Approves or rejects each booking
+4. Views client details and transactions
+
+---
+
+## ⚠️ Known Limitations
+
+- **📅 Android Calendar Glitch**: The `DateTimePicker` may behave inconsistently on Android. This is device-dependent and will be addressed before production.
+- **💳 Paystack Integration**: Payment functionality was omitted due to API key access issues. However, the app is modularly prepared for future integration.
+
+---
+
+## 🚀 Installation & Running
+
+1. Install [Expo Go](https://expo.dev/client) on your mobile device.
+2. Open the app using this Expo link: [@samon/booking_app](https://expo.dev/@samon/booking_app)
+3. Scan the QR code or search from within Expo Go.
+
+---
+
+## 🔧 Scripts
+
+```bash
+# Start development server
+npm run start
+
+# Android Preview
+npm run android
+
+# iOS Preview
+npm run ios
